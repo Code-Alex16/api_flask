@@ -11,6 +11,10 @@ app.config.from_object(Config)
 
 db.init_app(app)
 
+@app.route('/')
+def index():
+    return jsonify({'Hola' : 'esta es tu api'})
+
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
