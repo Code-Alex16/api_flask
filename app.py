@@ -30,7 +30,7 @@ def register():
         first_name=data['first_name'],
         last_name=data['last_name'],
         username=data['username'],
-        phone_number=data.get('phone_number')
+        phone_number=data['phone_number']
     )
     new_user.set_password(data['password'])
     db.session.add(new_user)

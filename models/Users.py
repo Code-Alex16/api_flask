@@ -12,7 +12,7 @@ class User(db.Model):
     first_name = db.Column(db.String(80), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
     phone_number = db.Column(db.String(20), nullable=True)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
     recovery_code = db.Column(db.String(6), nullable=True)
 
     def set_password(self, password):
