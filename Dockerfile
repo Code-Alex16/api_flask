@@ -8,8 +8,10 @@ WORKDIR /app
 # Copiar el contenido del proyecto
 COPY . /app
 
+RUN pip install --upgrade pip
+
 # Instalar las dependencias
-RUN pip install -r requirimientos.txt
+RUN pip install -r requerimientos.txt
 
 # Exponer el puerto de la aplicación
 EXPOSE 5000
