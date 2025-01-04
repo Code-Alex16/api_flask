@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Importa flask-cors
 from models.Users import db, User
 from Utils.codigo import generate_recovery_code
 from Utils.email_sender import send_email
@@ -9,11 +10,14 @@ import os
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Habilitar CORS
+CORS(app, resources={r"/*": {"origins": "*"}})  # Permitir todas las rutas y todos los orígenes
+
 db.init_app(app)
 
 @app.route('/')
 def index():
-    return jsonify({'Hola' : 'esta es tu api'})
+    return jsonify({'Hola': 'esta es tu api'})
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -46,7 +50,6 @@ def login():
 def recover():
     data = request.json
 
-    # Validar si se proporciona el método (email o sms)
     if 'method' not in data or data['method'] not in ['email', 'sms']:
         return jsonify({'message': 'Debes especificar un método válido: "email" o "sms"'}), 400
 
@@ -59,11 +62,9 @@ def recover():
     db.session.commit()
 
     if data['method'] == 'email':
-        # Verificar que se proporcione un correo electrónico
         if 'email' not in data or not data['email']:
             return jsonify({'message': 'Debes proporcionar un correo electrónico válido'}), 400
 
-        # Enviar código por correo
         template_path = os.path.join('templates', 'email.html')
         with open(template_path, 'r') as file:
             html_body = file.read()
@@ -76,7 +77,6 @@ def recover():
         return jsonify({'message': 'Código de recuperación enviado al correo'}), 200
 
     elif data['method'] == 'sms':
-        # Verificar que se proporcione un número de teléfono
         if not user.phone_number:
             return jsonify({'message': 'No se encontró un número de teléfono asociado a este usuario'}), 400
 
@@ -116,15 +116,11 @@ def get_users():
 
 @app.route('/update-user/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
-    """
-    Endpoint para actualizar la información de un usuario.
-    """
     data = request.json
     user = User.query.get(user_id)
     if not user:
         return jsonify({'message': 'Usuario no encontrado'}), 404
 
-    # Actualizar información solo si los campos están presentes en el JSON
     if 'email' in data:
         if User.query.filter(User.email == data['email'], User.id != user_id).first():
             return jsonify({'message': 'El correo ya está registrado por otro usuario'}), 400
@@ -145,17 +141,13 @@ def update_user(user_id):
         user.phone_number = data['phone_number']
 
     if 'password' in data:
-        user.set_password(data['password'])  # Actualizar la contraseña encriptada
+        user.set_password(data['password'])
 
     db.session.commit()
     return jsonify({'message': 'Información del usuario actualizada exitosamente'}), 200
 
-
 @app.route('/delete-user/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    """
-    Endpoint para eliminar un usuario.
-    """
     user = User.query.get(user_id)
     if not user:
         return jsonify({'message': 'Usuario no encontrado'}), 404
@@ -164,8 +156,7 @@ def delete_user(user_id):
     db.session.commit()
     return jsonify({'message': f'Usuario con ID {user_id} eliminado exitosamente'}), 200
 
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(host='0.0.0.0',port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
