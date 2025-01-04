@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . /app
 
 # Instalar las dependencias
-RUN pip install --no-cache-dir -r requirimientos.txt
+RUN pip install -r requirimientos.txt
 
 # Exponer el puerto de la aplicación
 EXPOSE 5000
