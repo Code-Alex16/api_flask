@@ -198,6 +198,13 @@ def delete_user(user_id):
     db.session.commit()
     return jsonify({'message': f'Usuario con ID {user_id} eliminado exitosamente'}), 200
 
+@app.route('/debug-schema', methods=['GET'])
+def debug_schema():
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    columns = inspector.get_columns('users')
+    return jsonify({col['name']: str(col['type']) for col in columns})
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
