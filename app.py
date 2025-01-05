@@ -217,7 +217,9 @@ def migrate_schema():
             return jsonify({'message': 'Schema updated successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     with app.app_context():
+        db.drop_all()  # Solo si estás seguro de que quieres borrar todo
         db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=True)
