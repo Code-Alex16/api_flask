@@ -21,22 +21,64 @@ def index():
 
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.json
-    if User.query.filter_by(email=data['email']).first() or User.query.filter_by(username=data['username']).first():
-        return jsonify({'message': 'Usuario o correo ya registrados'}), 400
+    try:
+        # Validar que todos los campos requeridos estén presentes
+        data = request.json
+        required_fields = ['email', 'username', 'first_name', 'last_name', 'password']
+        
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'message': f'El campo {field} es requerido',
+                    'error': 'MISSING_FIELD'
+                }), 400
 
-    new_user = User(
-        email=data['email'],
-        first_name=data['first_name'],
-        last_name=data['last_name'],
-        username=data['username'],
-        phone_number=data['phone_number']
-    )
-    new_user.set_password(data['password'])
-    db.session.add(new_user)
-    db.session.commit()
+        # Verificar si el usuario o email ya existen
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({
+                'message': 'El correo electrónico ya está registrado',
+                'error': 'EMAIL_EXISTS'
+            }), 400
 
-    return jsonify({'message': 'Usuario registrado exitosamente'}), 201
+        if User.query.filter_by(username=data['username']).first():
+            return jsonify({
+                'message': 'El nombre de usuario ya está registrado',
+                'error': 'USERNAME_EXISTS'
+            }), 400
+
+        # Crear nuevo usuario
+        new_user = User(
+            email=data['email'],
+            username=data['username'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            phone_number=data.get('phone_number', '')  # Campo opcional
+        )
+        
+        # Establecer la contraseña
+        new_user.set_password(data['password'])
+
+        # Guardar en la base de datos
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Usuario registrado exitosamente',
+            'user': {
+                'email': new_user.email,
+                'username': new_user.username,
+                'first_name': new_user.first_name,
+                'last_name': new_user.last_name
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en registro: {str(e)}")
+        return jsonify({
+            'message': 'Error interno del servidor',
+            'error': str(e)
+        }), 500
 
 @app.route('/login', methods=['POST'])
 def login():
